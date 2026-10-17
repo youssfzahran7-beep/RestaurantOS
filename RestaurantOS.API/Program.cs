@@ -38,6 +38,12 @@ builder.Services.AddAuthorization();
 builder.Services.AddOptions<RestaurantOS.API.Configuration.DatabaseOptions>()
     .BindConfiguration(RestaurantOS.API.Configuration.DatabaseOptions.SectionName);
 
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
+    .WithOrigins(allowedOrigins)
+    .AllowAnyHeader()
+    .AllowAnyMethod()));
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -48,6 +54,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
